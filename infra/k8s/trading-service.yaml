@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trading-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trading-service
+  template:
+    metadata:
+      labels:
+        app: trading-service
+    spec:
+      containers:
+      - name: trading-service
+        image: songdelamoon/trading-service:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: MARKET_SERVICE_URL
+          value: "http://market-service:9090"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: trading-service
+spec:
+  selector:
+    app: trading-service
+  ports:
+  - port: 8080
+    targetPort: 8080
+    nodePort: 30080
+  type: NodePort

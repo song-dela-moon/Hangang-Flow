@@ -1,0 +1,77 @@
+- name: Install Kubernetes on all nodes
+  hosts: k8s
+  become: yes
+  tasks:
+    - name: Load kernel modules
+      modprobe:
+        name: "{{ item }}"
+        state: present
+      loop: [overlay, br_netfilter]
+
+    - name: Set sysctl networking parameters
+      sysctl:
+        name: "{{ item.name }}"
+        value: "{{ item.value }}"
+        state: present
+      loop:
+        - { name: 'net.bridge.bridge-nf-call-iptables', value: '1' }
+        - { name: 'net.bridge.bridge-nf-call-ip6tables', value: '1' }
+        - { name: 'net.ipv4.ip_forward', value: '1' }
+
+    - name: Disable Swap
+      command: swapoff -a
+    
+    - name: Update apt and install dependencies
+      apt:
+        name: ["apt-transport-https", "ca-certificates", "curl", "gnupg"]
+        state: present
+        update_cache: yes
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+
+    - name: Install containerd
+      apt:
+        name: containerd.io
+        state: present
+
+    - name: Configure containerd for K8s
+      shell: |
+        mkdir -p /etc/containerd
+        containerd config default > /etc/containerd/config.toml
+        sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml
+      notify: restart containerd
+
+    - name: Add K8s GPG key
+      apt_key:
+        url: https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key
+        state: present
+
+    - name: Add K8s repository
+      apt_repository:
+        repo: "deb https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /"
+        state: present
+
+    - name: Install K8s tools
+      apt:
+        name: ["kubelet", "kubeadm", "kubectl"]
+        state: present
+
+    - name: Hold K8s tools versions
+      dpkg_selections:
+        name: "{{ item }}"
+        selection: hold
+      loop: ["kubelet", "kubeadm", "kubectl"]
+
+  handlers:
+    - name: restart containerd
+      service:
+        name: containerd
+        state: restarted

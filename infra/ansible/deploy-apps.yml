@@ -1,0 +1,25 @@
+- name: Deploy Applications to K8s
+  hosts: master
+  tasks:
+    - name: Create k8s directory on master
+      file:
+        path: /home/ubuntu/k8s
+        state: directory
+
+    - name: Copy manifest files to master
+      copy:
+        src: "../k8s/{{ item }}"
+        dest: "/home/ubuntu/k8s/{{ item }}"
+      loop:
+        - market-service.yaml
+        - trading-service.yaml
+        - exchange-web.yaml
+        - admin-web.yaml
+
+    - name: Apply manifests using kubectl
+      shell: "kubectl apply -f /home/ubuntu/k8s/{{ item }}"
+      loop:
+        - market-service.yaml
+        - trading-service.yaml
+        - exchange-web.yaml
+        - admin-web.yaml

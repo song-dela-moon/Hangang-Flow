@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: exchange-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: exchange-web
+  template:
+    metadata:
+      labels:
+        app: exchange-web
+    spec:
+      containers:
+      - name: exchange-web
+        image: songdelamoon/exchange-web:latest
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: exchange-web
+spec:
+  selector:
+    app: exchange-web
+  ports:
+  - port: 80
+    targetPort: 8080
+    nodePort: 30001
+  type: NodePort

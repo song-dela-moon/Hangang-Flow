@@ -38,3 +38,15 @@ jobs:
         run: |
           bazel run //apps/market-service:push -- \
             --repository docker.io/${{ secrets.DOCKERHUB_USERNAME }}/market-service
+
+      # -exchange-web
+      - name: Build and Push Exchange Web
+        run: |
+          bazel run //apps/exchange-web:push -- \
+            --repository docker.io/${{ secrets.DOCKERHUB_USERNAME }}/exchange-web
+
+      # -admin-web
+      - name: Build and Push Admin Web
+        run: |
+          bazel run //apps/admin-web:push -- \
+            --repository docker.io/${{ secrets.DOCKERHUB_USERNAME }}/admin-web
