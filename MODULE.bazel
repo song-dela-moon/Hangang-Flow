@@ -1,0 +1,70 @@
+module(
+    name = "hangang-flow",
+    version = "0.1.0",
+)
+
+# Java / Spring Boot rules
+bazel_dep(name = "rules_java", version = "7.11.1")
+bazel_dep(name = "rules_jvm_external", version = "6.6")
+
+# JavaScript / Node rules
+bazel_dep(name = "rules_nodejs", version = "6.3.1")
+bazel_dep(name = "aspect_rules_js", version = "2.1.0")
+bazel_dep(name = "aspect_bazel_lib", version = "2.7.7")
+
+# OCI container image rules (Docker-daemon-free)
+bazel_dep(name = "rules_oci", version = "1.8.0")
+bazel_dep(name = "rules_pkg", version = "0.10.1")
+bazel_dep(name = "bazel_skylib", version = "1.6.1")
+
+# ─────────────────────────────────────────────────────────────
+# Maven (Java) dependencies
+# ─────────────────────────────────────────────────────────────
+maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
+maven.install(
+    name = "maven",
+    artifacts = [
+        "org.springframework.boot:spring-boot-starter-web:3.3.0",
+        "org.springframework.boot:spring-boot-starter-data-jpa:3.3.0",
+        "com.h2database:h2:2.2.224",
+        "org.springframework.boot:spring-boot-starter-test:3.3.0",
+        "org.projectlombok:lombok:1.18.32",
+    ],
+    repositories = [
+        "https://repo1.maven.org/maven2",
+    ],
+)
+use_repo(maven, "maven")
+
+# ─────────────────────────────────────────────────────────────
+# OCI Images (Base Images)
+# ─────────────────────────────────────────────────────────────
+oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
+
+oci.pull(
+    name = "distroless_java",
+    image = "gcr.io/distroless/java21-debian12",
+    digest = "sha256:f34fd3e4e2d7a246d764d0614f5e6ffb3a735930723fac4cfc25a72798950262",
+    platforms = ["linux/amd64"],
+)
+
+oci.pull(
+    name = "distroless_nodejs",
+    image = "gcr.io/distroless/nodejs20-debian12",
+    digest = "sha256:6fe218dbad37e979c7542e670d28d6e23d3f53d2929693bc9cdded8b622f339f",
+    platforms = ["linux/amd64"],
+)
+
+use_repo(oci, "distroless_java", "distroless_nodejs")
+
+# ─────────────────────────────────────────────────────────────
+# NPM Dependencies
+# ─────────────────────────────────────────────────────────────
+npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm", dev_dependency = True)
+
+npm.npm_translate_lock(
+    name = "npm",
+    pnpm_lock = "//:pnpm-lock.yaml",
+)
+
+use_repo(npm, "npm")

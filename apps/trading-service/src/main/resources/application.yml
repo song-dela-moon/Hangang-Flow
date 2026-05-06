@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: trading-service
+  datasource:
+    url: jdbc:h2:mem:tradingdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+
+server:
+  port: 8080
+
+# market-service connection
+market:
+  service:
+    url: http://localhost:9090

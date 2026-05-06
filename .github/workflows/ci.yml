@@ -1,0 +1,40 @@
+name: Build and Push
+
+on:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  bazel-build-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1. Bazel 캐시 설정 (빌드 속도 최적화)
+      - name: Mount bazel cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/bazel
+          key: bazel-cache-${{ runner.os }}-${{ hashFiles('**/BUILD', 'MODULE.bazel', 'package.json') }}
+          restore-keys: |
+            bazel-cache-${{ runner.os }}-
+
+      # 2. Docker Hub 로그인 (GitHub Secrets 사용)
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 3. Bazel 빌드 및 푸시
+      # -trading-service
+      - name: Build and Push Trading Service
+        run: |
+          bazel run //apps/trading-service:push -- \
+            --repository docker.io/${{ secrets.DOCKERHUB_USERNAME }}/trading-service
+
+      # -market-service
+      - name: Build and Push Market Service
+        run: |
+          bazel run //apps/market-service:push -- \
+            --repository docker.io/${{ secrets.DOCKERHUB_USERNAME }}/market-service

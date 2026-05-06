@@ -1,0 +1,5 @@
+* { box-sizing: border-box; }
+body { margin: 0; background: #fff; color: #111; }
+table { font-size: 0.9rem; }
+th, td { padding: 0.4rem 0.6rem; text-align: left; }
+button { cursor: pointer; padding: 0.3rem 0.7rem; }

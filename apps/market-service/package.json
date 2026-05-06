@@ -1,0 +1,14 @@
+{
+  "name": "core-be",
+  "version": "0.1.0",
+  "description": "Price & Asset management service for Hangang-Flow",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "uuid": "^9.0.0"
+  }
+}
