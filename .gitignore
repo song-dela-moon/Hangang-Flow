@@ -1,0 +1,31 @@
+# Personal files
+과제테스트_송준규.pdf
+
+# Bazel
+/bazel-*
+.bazelrc.user
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# Ansible
+*.retry
+inventory.ini # 민감한 IP 정보가 포함될 수 있음
+
+# Node.js
+node_modules/
+dist/
+.npm/
+*.log
+
+# Python (Ansible/Terraform related)
+__pycache__/
+*.pyc
+
+# IDEs
+.vscode/
+.idea/
+.DS_Store
