@@ -25,18 +25,38 @@ resource "openstack_networking_secgroup_rule_v2" "k8s_api" {
   security_group_id = openstack_networking_secgroup_v2.k8s_sg.id
 }
 
-# 3. 모든 내부 통신 허용 (노드 간 자유로운 통신 필수)
-resource "openstack_networking_secgroup_rule_v2" "internal_all" {
+# 3. 모든 내부 통신 허용 (TCP)
+resource "openstack_networking_secgroup_rule_v2" "internal_tcp" {
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
   port_range_min    = 1
   port_range_max    = 65535
-  remote_group_id   = openstack_networking_secgroup_v2.k8s_sg.id # 자기 자신(보안그룹 내 노드)끼리는 모두 허용
+  remote_group_id   = openstack_networking_secgroup_v2.k8s_sg.id
   security_group_id = openstack_networking_secgroup_v2.k8s_sg.id
 }
 
-# 4. NodePort 서비스 (30000-32767) - 외부 앱 접속용
+# 4. 모든 내부 통신 허용 (UDP) - Flannel VXLAN 필수
+resource "openstack_networking_secgroup_rule_v2" "internal_udp" {
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "udp"
+  port_range_min    = 1
+  port_range_max    = 65535
+  remote_group_id   = openstack_networking_secgroup_v2.k8s_sg.id
+  security_group_id = openstack_networking_secgroup_v2.k8s_sg.id
+}
+
+# 5. 모든 내부 통신 허용 (ICMP) - 진단용
+resource "openstack_networking_secgroup_rule_v2" "internal_icmp" {
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "icmp"
+  remote_group_id   = openstack_networking_secgroup_v2.k8s_sg.id
+  security_group_id = openstack_networking_secgroup_v2.k8s_sg.id
+}
+
+# 6. NodePort 서비스 (30000-32767) - 외부 앱 접속용
 resource "openstack_networking_secgroup_rule_v2" "nodeports" {
   direction         = "ingress"
   ethertype         = "IPv4"

@@ -27,6 +27,6 @@ spec:
     app: admin-web
   ports:
   - port: 80
-    targetPort: 80
-    nodePort: 30002 # 30001은 exchange-web이 사용 중
+    targetPort: 8080
+    nodePort: 30002 #
   type: NodePort
