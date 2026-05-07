@@ -27,6 +27,3 @@ ansible-playbook -i inventory.ini deploy-apps.yml
 ## 🔗 Access
 - **Exchange UI**: http://172.21.33.221:30001
 - **Admin UI**: http://172.21.33.221:30002
-
-## 🛠 Troubleshooting
-자세한 장애 해결 과정은 [troubleshooting_report.md](./troubleshooting_report.md)를 참고하세요.
