@@ -22,5 +22,14 @@
 - **원인**: `market-service`는 내부적으로 **9090** 포트에서 대기 중이었으나, 프론트엔드 프록시는 **8080**으로 패킷을 보내고 있었음.
 - **해결**: 프론트엔드 `server.js` 내의 `MARKET_URL` 포트를 9090으로 수정함.
 
+## 5. ArgoCD 설치 및 심볼릭 링크 장애
+- **증상 1**: ArgoCD 설치 시 `CRD invalid: metadata.annotations: Too long` 에러 발생.
+- **원인**: `kubectl apply` 사용 시 ArgoCD의 거대한 설정 파일이 K8s 어노테이션 용량 제한을 초과함.
+- **해결**: `kubectl apply --server-side --force-conflicts` 옵션을 사용하여 서버 측에서 설정을 강제 적용함.
+
+- **증상 2**: ArgoCD 앱 생성 시 `out-of-bounds symlinks` 에러 발생.
+- **원인**: Bazel이 생성한 심볼릭 링크(`bazel-*`)가 Git 저장소에 포함되어 있었으며, 이는 저장소 외부 경로를 가리키고 있어 ArgoCD 보안 정책상 거부됨.
+- **해결**: `git rm -r --cached bazel-*` 명령어로 저장소에서 링크 정보를 제거하고 `.gitignore`에 추가함.
+
 ---
-**최종 상태**: 모든 서비스 정상 통신 확인 (NodePort 30001, 30002를 통해 접근 가능)
+**최종 상태**: 모든 서비스 정상 통신 확인 및 ArgoCD를 통한 GitOps 자동 배포 완성.

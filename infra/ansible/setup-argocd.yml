@@ -1,0 +1,45 @@
+---
+- name: Setup ArgoCD on Kubernetes Cluster
+  hosts: master
+  remote_user: ubuntu
+  become: false  # kubectl은 일반적으로 사용자 권한으로 실행됨
+  
+  tasks:
+    - name: Create argocd namespace
+      shell: kubectl create namespace argocd
+      register: ns_result
+      failed_when: false
+      changed_when: "'already exists' not in ns_result.stderr"
+
+    - name: Install ArgoCD manifests
+      shell: kubectl apply --server-side --force-conflicts -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+      register: install_result
+      changed_when: "'created' in install_result.stdout or 'configured' in install_result.stdout"
+
+    - name: Wait for ArgoCD server to be ready
+      shell: kubectl wait --for=condition=available --timeout=300s deployment/argocd-server -n argocd
+      changed_when: false
+
+    - name: Patch ArgoCD server service to NodePort
+      shell: |
+        kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "NodePort"}}'
+      register: patch_result
+      changed_when: "'patched' in patch_result.stdout"
+
+    - name: Get ArgoCD initial admin password
+      shell: kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+      register: argocd_password
+      changed_when: false
+
+    - name: Get ArgoCD NodePort
+      shell: kubectl get svc argocd-server -n argocd -o jsonpath='{.spec.ports[?(@.name=="https")].nodePort}'
+      register: argocd_port
+      changed_when: false
+
+    - name: Display ArgoCD Access Information
+      debug:
+        msg: 
+          - "ArgoCD URL: https://{{ ansible_host }}:{{ argocd_port.stdout }}"
+          - "Username: admin"
+          - "Initial Password: {{ argocd_password.stdout }}"
+          - "Note: Please ignore the HTTPS certificate warning in your browser."
